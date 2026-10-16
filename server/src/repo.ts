@@ -67,9 +67,11 @@ export function queryItems(q: ItemQuery): ItemWithFeed[] {
 
   let baseFrom = 'items i JOIN feeds f ON f.id = i.feed_id';
   if (q.query && q.query.trim()) {
+    const search = toFtsQuery(q.query);
+    if (!search) return [];
+    params.query = search;
     baseFrom = 'items_fts fts JOIN items i ON i.id = fts.rowid JOIN feeds f ON f.id = i.feed_id';
     clauses.push('items_fts MATCH @query');
-    params.query = toFtsQuery(q.query);
   }
   if (q.feedId) {
     clauses.push('i.feed_id = @feedId');
@@ -95,14 +97,10 @@ export function queryItems(q: ItemQuery): ItemWithFeed[] {
 }
 
 function toFtsQuery(raw: string): string {
-  // Treat the user's input as a set of AND-ed prefix terms; strip characters
-  // that would otherwise be parsed as FTS5 query syntax.
-  const terms = raw
-    .split(/\s+/)
-    .map((t) => t.replace(/[^\w]/g, ''))
-    .filter(Boolean)
-    .map((t) => `${t}*`);
-  return terms.join(' AND ') || raw;
+  // Quote literal Unicode word terms so FTS operators/punctuation cannot
+  // become query syntax. No terms means no matches, not a malformed MATCH.
+  return (raw.match(/[\p{L}\p{N}_]+/gu) ?? [])
+    .map((term) => `"${term}"*`).join(' AND ');
 }
 
 export function markRead(itemId: number, isRead: boolean): void {
