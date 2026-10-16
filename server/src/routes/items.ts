@@ -4,10 +4,10 @@ import { queryItems, markRead } from '../repo.js';
 
 export const itemsRouter = Router();
 
-const querySchema = z.object({
+export const querySchema = z.object({
   feedId: z.coerce.number().int().optional(),
   q: z.string().optional(),
-  unreadOnly: z.coerce.boolean().optional(),
+  unreadOnly: z.enum(['true', 'false']).transform((value) => value === 'true').optional(),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   offset: z.coerce.number().int().min(0).default(0),
 });
