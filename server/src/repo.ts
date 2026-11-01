@@ -45,7 +45,11 @@ const upsertItemStmt = db.prepare(`
     content_snippet = excluded.content_snippet,
     content_html = excluded.content_html,
     published_at = excluded.published_at
-  WHERE items.title != excluded.title OR items.content_snippet IS NOT excluded.content_snippet
+  WHERE items.title IS NOT excluded.title
+    OR items.link IS NOT excluded.link
+    OR items.content_snippet IS NOT excluded.content_snippet
+    OR items.content_html IS NOT excluded.content_html
+    OR items.published_at IS NOT excluded.published_at
 `);
 
 export function upsertItem(item: NewItem): void {
