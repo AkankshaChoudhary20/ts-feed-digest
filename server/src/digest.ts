@@ -16,13 +16,13 @@ export interface Digest {
 
 export function buildDigest(sinceIso: string): Digest {
   const rows = itemsSince(sinceIso);
-  const byFeed = new Map<string, DigestGroup>();
+  const byFeed = new Map<number, DigestGroup>();
   for (const row of rows) {
     const feedTitle = row.feed_title ?? 'Unknown feed';
-    let group = byFeed.get(feedTitle);
+    let group = byFeed.get(row.feed_id);
     if (!group) {
       group = { feedTitle, items: [] };
-      byFeed.set(feedTitle, group);
+      byFeed.set(row.feed_id, group);
     }
     group.items.push({
       id: row.id,
